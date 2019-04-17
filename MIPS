@@ -37,46 +37,34 @@ main_nhap_lai_time:
 	syscall
 	j main_nhap_time
 
-add $a0, $zero, $s0
-	jal CAN
-	add $a0, $zero, $v0
-	addi $v0, $zero, 4	# syscall print string
-	syscall
-	
-	add $a0, $zero, $s0
-	jal CHI
-	add $a0, $zero, $v0
-	addi $v0, $zero, 4	# syscall print string
-	syscall
-	j main_exit
  #-----goi ham---------------
-  add $a0, $zero, $s0
-	jal CAN
+ 	add $a0, $zero, $s0
+	jal CANCHI
 	add $a0, $zero, $v0
 	addi $v0, $zero, 4	# syscall print string
 	syscall
-	
-	add $a0, $zero, $s0
-	jal CHI
-	add $a0, $zero, $v0
-	addi $v0, $zero, 4	# syscall print string
+	add $a0, $zero, $v1
+	addi $v1, $zero, 4	# syscall print string
 	syscall
 	j main_exit
 
   
-  
 #--------------------------------------------------------------------------
-CAN:
+CANCHI:
 	addi $sp, $sp, -16
 	sw $ra, 12($sp)
 
+	
 	jal Year
 	sw $v0, 8($sp)		# save Year(TIME)
-  
+
+
 	lw $a0, 8($sp)		# get Year(TIME)
-  
+
+	
 	addi $t0, $zero, 10 	# Gan bien tam t0 = 10
 	
+	addi $v1,$v0,8		#Year=Year+8
 	addi $v0,$v0,6		#Year=Year+6
 	div $v0, $t0		
 	mfhi $v0		# $v0 = (Year +6) mod 10
@@ -134,86 +122,71 @@ CAN_Nham:
 Nham_Quy:
 	la $v0, Quy 
 CAN_end:
- 	lw $ra, 12($sp)
-	addi $sp, $sp, 16
-	jr $ra	
-#---------------------------------------------------
-CHI:
-	addi $sp, $sp, -16
-	sw $ra, 12($sp)
 
-	jal Year
-	sw $v0, 8($sp)		# save Year(TIME)
+	addi $t1, $zero, 12 	# Gan bien tam t0 = 12
 
-	lw $a0, 8($sp)		# get Year(TIME)
-
-	addi $t0, $zero, 12 	# Gan bien tam t0 = 12
-	
-	addi $v0,$v0,8		#Year=Year+8
-	div $v0, $t0		
-	mfhi $v0		# $v0 = (Year +8) mod 12
+	div $v1, $t1		
+	mfhi $v1		# $v0 = (Year +8) mod 12
 CHI_NEXT:
-	addi $t0, $zero,11	
-	bne $v0, $t0, CHI_ti
-	la $v0, Hoi
+	addi $t1, $zero,11	
+	bne $v1, $t1, CHI_ti
+	la $v1, Hoi
 	j CHI_end
 CHI_ti:
-	addi $t0, $zero,0	
-	bne $v0, $t0, CHI_suu
-	la $v0, Ti
+	addi $t1, $zero,0	
+	bne $v1, $t1, CHI_suu
+	la $v1, Ti
 	j CAN_end
 CHI_suu:
-	addi $t0, $zero,1	
-	bne $v0, $t0, CHI_dan
-	la $v0, Suu
+	addi $t1, $zero,1	
+	bne $v1, $t1, CHI_dan
+	la $v1, Suu
 	j CHI_end
 CHI_dan:
-	addi $t0, $zero,2	
-	bne $v0, $t0, CHI_meo
-	la $v0, Dan
+	addi $t1, $zero,2	
+	bne $v1, $t1, CHI_meo
+	la $v1, Dan
 	j CHI_end
 CHI_meo:
-	addi $t0, $zero,3	
-	bne $v0, $t0, CHI_thin
-	la $v0, Meo
+	addi $t1, $zero,3	
+	bne $v1, $t1, CHI_thin
+	la $v1, Meo
 	j CHI_end
 CHI_thin:
-	addi $t0, $zero,4	
-	bne $v0, $t0, CHI_ty
-	la $v0, Thin
+	addi $t1, $zero,4	
+	bne $v1, $t1, CHI_ty
+	la $v1, Thin
 	j CHI_end
 CHI_ty:
-	addi $t0, $zero,5	
-	bne $v0, $t0, CHI_ngo
-	la $v0, Ty
+	addi $t1, $zero,5	
+	bne $v1, $t1, CHI_ngo
+	la $v1, Ty
 	j CHI_end
 CHI_ngo:
-	addi $t0, $zero,6	
-	bne $v0, $t0, CHI_mui
-	la $v0, Ngo
+	addi $t1, $zero,6	
+	bne $v1, $t1, CHI_mui
+	la $v1, Ngo
 	j CHI_end
 CHI_mui:
-	addi $t0, $zero,7	
-	bne $v0, $t0, CHI_than
-	la $v0, Mui
+	addi $t1, $zero,7	
+	bne $v1, $t1, CHI_than
+	la $v1, Mui
 	j CHI_end
 CHI_than:
-	addi $t0, $zero,8	
-	bne $v0, $t0, CHI_dau
-	la $v0, Than
+	addi $t1, $zero,8	
+	bne $v1, $t1, CHI_dau
+	la $v1, Than
 	j CHI_end
 CHI_dau:
-	addi $t0, $zero,8	
-	bne $v0, $t0, CHI_tuat
-	la $v0, Nham
+	addi $t1, $zero,8	
+	bne $v1, $t1, CHI_tuat
+	la $v1, Dau
 	j CHI_end
 CHI_tuat:
-	la $v0, Tuat
+	la $v1, Tuat
 	j CHI_end
 
 CHI_end:
  	lw $ra, 12($sp)
 	addi $sp, $sp, 16
 	jr $ra
-	
-	
