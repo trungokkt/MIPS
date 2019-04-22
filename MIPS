@@ -65,13 +65,13 @@ msg_yc_khonghople:
 	xuongdong: .asciiz	"\n"
 	convert_time: .space 11
 	daysOfWeek: .word cn, t2, t3, t4, t5, t6, t7
-	sun: .asciiz " Sun"
-	mon: .asciiz " Mon"
-	tue: .asciiz " Tues"
-	wed: .asciiz " Wed"
-	thu: .asciiz " Thurs"
-	fri: .asciiz " Fri"
-	sat: .asciiz " Sat"
+	sun: .asciiz " chu nhat"
+	mon: .asciiz " thu hai"
+	tue: .asciiz " thu ba"
+	wed: .asciiz " thu tu"
+	thu: .asciiz " thu nam"
+	fri: .asciiz " thu sau"
+	sat: .asciiz " thu bay"
 	day: .word 0
 	month: .word 0
 	year: .word 0
@@ -82,7 +82,9 @@ msg_yc_khonghople:
 	time4_backup: .space 16
 	Temp1: .space 1024
 	Temp2: .space 1024
-	
+	time_backup: .space 16
+	saveitoa: .space 1024
+	rong:.space 1024
 	Temp3: .space 1024
 	Temp4: .space 1024
 	fileName: .asciiz "input.txt"
@@ -100,6 +102,17 @@ msg_yc_khonghople:
 	Month_11:	.asciiz "November"
 	Month_12:	.asciiz "December"
 	La:	.asciiz " la "
+	saitime1: .asciiz "chuoi time 1 khong hop le"
+	saitime2: .asciiz "chuoi time 2 khong hop le"
+	sai2time: .asciiz "Chuoi Time_1 va Time_2 khong hop le "
+	khoangcach:	.asciiz " "
+	kctn:	.asciiz "Khoang cach tu ngay "
+	strdenn:	.asciiz " den ngay  "
+	strngay:	.asciiz " ngay"
+	strhnn:	.asciiz "Hai nam nhuan gan voi "
+	nhatla:	.asciiz " nhat la "
+	va:	.asciiz " va "
+	ngaydautien: .asciiz "01/01/0001"
 .text
 
 #Hàm main
@@ -381,6 +394,7 @@ HaiNamNhuanGan:
 	li $v0,11
 	li $a0,32
 	syscall
+	
 	li $v0,1
 	move $a0,$t0
 	syscall
@@ -400,19 +414,53 @@ NhapXuatInOut:
 	la $t0, time3
 	la $t1, Temp3
 	jal DOCFILE
-
+	
+	move $t8,$v1	
+	
+	la $t0, time4
+	la $t1, Temp4
+	jal DOCFILE
+	move $t9,$v1
+	
 	li $v0, 16         		# close_file syscall code
     	move $a0,$s0      		# file descriptor to close
     	syscall
     	
-
-	
+ 
 #open file out
     	li $v0,13           	# open_file syscall code = 13
 	la $a0,fileNameout     	# get the file name
 	li $a1,1           	# file flag = write (1)
 	syscall
 	move $s1,$v0        	# save the file descriptor. $s0 = file
+
+	beq $t8,0,ktsaitime2khitime1sai
+	j ktsaitime2khitime1dung
+ktsaitime2khitime1sai:
+	beq $t9,1,saica2
+	li $v0,15		# write_file syscall code = 15
+    	move $a0,$s1		# file descriptor
+    	la $a1,sai2time		# the string that will be writter
+    	la $a2,35		# length of the toWrite string
+    	syscall
+    	j KetThuc
+ktsaitime2khitime1dung:
+	beq $t9,0,tame2sai
+	j Phan1
+saica2:
+	li $v0,15		# write_file syscall code = 15
+    	move $a0,$s1		# file descriptor
+    	la $a1,sai2time		# the string that will be writter
+    	la $a2,25		# length of the toWrite string
+    	syscall
+    	j KetThuc
+tame2sai:
+	li $v0,15		# write_file syscall code = 15
+    	move $a0,$s1		# file descriptor
+    	la $a1,saitime2		# the string that will be writter
+    	la $a2,25		# length of the toWrite string
+    	syscall
+    	j KetThuc
 Phan1:
 	li $v0,15		# write_file syscall code = 15
     	move $a0,$s1		# file descriptor
@@ -431,7 +479,97 @@ Phan1:
     	la $a1,xuongdong		# the string that will be writter
     	la $a2,1		# length of the toWrite string
     	syscall
+ 	
+Phan2:
+
+	li $v0,15		# write_file syscall code = 15
+    	move $a0,$s1		# file descriptor
+    	la $a1,p2a		# the string that will be writter
+    	la $a2,4		# length of the toWrite string
+    	syscall
     	
+	la $a1,time3
+	la $a0,time_backup
+	jal strcpy
+	
+	#Xuat 2A
+	la $a0,time3
+	la $a1,65
+	jal Convert
+	li $v0,15		# write_file syscall code = 15
+    	move $a0,$s1		# file descriptor
+    	la $a1,time3		# the string that will be writter
+    	la $a2,10		# length of the toWrite string
+    	syscall  	
+	li $v0,15		# write_file syscall code = 15
+    	move $a0,$s1		# file descriptor
+    	la $a1,xuongdong		# the string that will be writter
+    	la $a2,1		# length of the toWrite string
+    	syscall
+    	
+    	#Xuat2B
+    	li $v0,15		# write_file syscall code = 15
+    	move $a0,$s1		# file descriptor
+    	la $a1,p2b		# the string that will be writter
+    	la $a2,4		# length of the toWrite string
+    	syscall
+    	
+    	la $a0,time3
+	la $a1,time_backup
+	jal strcpy
+	
+    	la $a0,time3
+	la $a1,66
+	jal Convert
+	
+	la $a0,time3
+	jal strlen
+	move $t4,$v0
+	
+	li $v0,15		# write_file syscall code = 15
+    	move $a0,$s1		# file descriptor
+    	la $a1,time3		# the string that will be writter
+    	la $a2,($t4)		# length of the toWrite string
+    	syscall  	
+	li $v0,15		# write_file syscall code = 15
+    	move $a0,$s1		# file descriptor
+    	la $a1,xuongdong		# the string that will be writter
+    	la $a2,1		# length of the toWrite string
+    	syscall
+	
+	#Xuat2C
+	li $v0,15		# write_file syscall code = 15
+    	move $a0,$s1		# file descriptor
+    	la $a1,p2c		# the string that will be writter
+    	la $a2,4		# length of the toWrite string
+    	
+    	syscall
+	la $a0,time3
+	la $a1,time_backup
+	jal strcpy
+	
+    	la $a0,time3
+	la $a1,67
+	jal Convert
+	
+	la $a0,time3
+	jal strlen
+	move $t4,$v0
+	
+	li $v0,15		# write_file syscall code = 15
+    	move $a0,$s1		# file descriptor
+    	la $a1,time3		# the string that will be writter
+    	la $a2,($t4)		# length of the toWrite string
+    	syscall  	
+	li $v0,15		# write_file syscall code = 15
+    	move $a0,$s1		# file descriptor
+    	la $a1,xuongdong		# the string that will be writter
+    	la $a2,1		# length of the toWrite string
+    	syscall
+	la $a0,time3
+	la $a1,time_backup
+	jal strcpy
+	
 Phan3:
 	li $v0,15		# write_file syscall code = 15
     	move $a0,$s1		# file descriptor
@@ -439,9 +577,33 @@ Phan3:
     	la $a2,3		# length of the toWrite string
     	syscall
     	
-	la $a0,time
+    	
+    	la $a0,time3
+    	jal Year
+	move $a0,$v0
+	la $a1,saveitoa
+    	jal  itoa
+	
+	la $a0,saveitoa
+	jal strlen
+	move $t4,$v0
+    	
+    	li $v0,15		# write_file syscall code = 15
+    	move $a0,$s1		# file descriptor
+    	la $a1,saveitoa		# the string that will be writter
+    	la $a2,($t4)		# length of the toWrite string
+    	syscall
+    	
+    	li $v0,15		# write_file syscall code = 15
+    	move $a0,$s1		# file descriptor
+    	la $a1,La		# the string that will be writter
+    	la $a2,4		# length of the toWrite string
+    	syscall
+    	
+	la $a0,time3
 	jal LeapYear
 	move $t0,$v0
+	
 	bne $t0,$0,writeNhuan_Nhuan
 	li $v0,15		# write_file syscall code = 15
     	move $a0,$s1		# file descriptor
@@ -457,8 +619,25 @@ writeNhuan_Nhuan:
     	la $a2,13		# length of the toWrite string
     	syscall
 	j Phan4
+		
 Phan4:
 #4	
+	li $v0,15		# write_file syscall code = 15
+    	move $a0,$s1		# file descriptor
+    	la $a1,p4		# the string that will be writter
+    	la $a2,3		# length of the toWrite string
+    	syscall
+
+	li $v0,15		# write_file syscall code = 15
+    	move $a0,$s1		# file descriptor
+    	la $a1,time3		# the string that will be writter
+    	la $a2,10		# length of the toWrite string
+    	syscall
+	li $v0,15		# write_file syscall code = 15
+    	move $a0,$s1		# file descriptor
+    	la $a1,La		# the string that will be writter
+    	la $a2,3		# length of the toWrite string
+    	syscall
 	la $a0,time3
 	jal WeekDay
 	move $a0,$v0	
@@ -469,12 +648,6 @@ Phan4:
 	jal WeekDay
 	move $t0,$v0	
 	
-	li $v0,15		# write_file syscall code = 15
-    	move $a0,$s1		# file descriptor
-    	la $a1,p4		# the string that will be writter
-    	la $a2,2		# length of the toWrite string
-    	syscall
-  
     	li $v0,15		# write_file syscall code = 15
     	move $a0,$s1		# file descriptor
     	la $a1,($t0) 		# the string that will be writter
@@ -486,25 +659,115 @@ Phan4:
     	la $a1,xuongdong		# the string that will be writter
     	la $a2,1		# length of the toWrite string
     	syscall
+Phan5:		
+	li $v0,15		# write_file syscall code = 15
+    	move $a0,$s1		# file descriptor
+    	la $a1,p5		# the string that will be writter
+    	la $a2,3		# length of the toWrite string
+    	syscall
+    			
+    	li $v0,15		# write_file syscall code = 15
+    	move $a0,$s1		# file descriptor
+    	la $a1,kctn 		# the string that will be writter
+    	la $a2,	20	# length of the toWrite string
+    	syscall
+    	
+    	li $v0,15		# write_file syscall code = 15
+    	move $a0,$s1		# file descriptor
+    	la $a1,ngaydautien 		# the string that will be writter
+    	la $a2,	10	# length of the toWrite string
+    	syscall
+    	
+    	li $v0,15		# write_file syscall code = 15
+    	move $a0,$s1		# file descriptor
+    	la $a1,strdenn 		# the string that will be writter
+    	la $a2,	10	# length of the toWrite string
+    	syscall
+    	
+    	li $v0,15		# write_file syscall code = 15
+    	move $a0,$s1		# file descriptor
+    	la $a1,time3 		# the string that will be writter
+    	la $a2,	10	# length of the toWrite string
+    	syscall
+    	
+    	
+    	li $v0,15		# write_file syscall code = 15
+    	move $a0,$s1		# file descriptor
+    	la $a1,La 		# the string that will be writter
+    	la $a2,	4	# length of the toWrite string
+    	syscall
+    	
+    	la $a0,time3
+	jal FullDate
 
+	move $a0,$v0
+	la $a1,saveitoa
+    	jal  itoa
+	
+	la $a0,saveitoa
+	jal strlen
+	move $t4,$v0
+	
+ 	li $v0,15		# write_file syscall code = 15
+    	move $a0,$s1		# file descriptor
+    	la $a1,saveitoa		# the string that will be writter
+    	la $a2,($t4)		# length of the toWrite string
+    	syscall
+
+    	
+    	li $v0,15		# write_file syscall code = 15
+    	move $a0,$s1		# file descriptor
+    	la $a1,xuongdong		# the string that will be writter
+    	la $a2,1		# length of the toWrite string
+    	syscall
+    	
 Phan6:
 #6	
+	li $v0,15		# write_file syscall code = 15
+    	move $a0,$s1		# file descriptor
+    	la $a1,p6		# the string that will be writter
+    	la $a2,3		# length of the toWrite string
+    	syscall
+
+	la $a0,time3
+    	jal Year
+	move $a0,$v0
+	la $a1,saveitoa
+    	jal  itoa
+	
+	la $a0,saveitoa
+	jal strlen
+	move $t4,$v0
+    	
+    	li $v0,15		# write_file syscall code = 15
+    	move $a0,$s1		# file descriptor
+    	la $a1,saveitoa		# the string that will be writter
+    	la $a2,($t4)		# length of the toWrite string
+    	syscall
+    	
+    	li $v0,15		# write_file syscall code = 15
+    	move $a0,$s1		# file descriptor
+    	la $a1,La		# the string that will be writter
+    	la $a2,4		# length of the toWrite string
+    	syscall
+
 	la $a0,time3
 	jal CanChi
 	la $t0,($v0)
 	la $t1,($v1)
 	move $t5,$a2
 	move $t6,$a3
-	addi $t5,$t5,1
-	li $v0,15		# write_file syscall code = 15
-    	move $a0,$s1		# file descriptor
-    	la $a1,p6		# the string that will be writter
-    	la $a2,3		# length of the toWrite string
-    	syscall
+	
+	
     	li $v0,15		# write_file syscall code = 15
     	move $a0,$s1		# file descriptor
     	la $a1,($t0) 		# the string that will be writter
     	la $a2,($t5)		# length of the toWrite string
+    	syscall
+    	li $v0,15		# write_file syscall code = 15
+    	move $a0,$s1		# file descriptor
+    	la $a1,khoangcach		# the string that will be writter
+    	la $a2,1		# length of the toWrite string
     	syscall
     	li $v0,15		# write_file syscall code = 15
     	move $a0,$s1		# file descriptor
@@ -516,62 +779,185 @@ Phan6:
     	la $a1,xuongdong		# the string that will be writter
     	la $a2,1		# length of the toWrite string
     	syscall
-	
-	j KetThuc	
-#---------------------------------Cac ham dung trong main -------------------------------
-ItoA:
-  bnez $a0, ItoA.non_zero  # first, handle the special case of a value of zero
-  nop
-  li   $t0, '0'
-  sb   $t0, 0($a1)
-  sb   $zero, 1($a1)
-  li   $v0, 1
-  jr   $ra
-ItoA.non_zero:
-  addi $t0, $zero, 10     # now check for a negative value
-  li $v0, 0
-    
-  bgtz $a0, ItoA.recurse
-  nop
-  li   $t1, '-'
-  sb   $t1, 0($a1)
-  addi $v0, $v0, 1
-  neg  $a0, $a0
-ItoA.recurse:
-  addi $sp, $sp, -24
-  sw   $fp, 8($sp)
-  addi $fp, $sp, 8
-  sw   $a0, 4($fp)
-  sw   $a1, 8($fp)
-  sw   $ra, -4($fp)
-  sw   $s0, -8($fp)
-  sw   $s1, -12($fp)
-   
-  div  $a0, $t0       # $a0/10
-  mflo $s0            # $s0 = quotient
-  mfhi $s1            # s1 = remainder  
-  beqz $s0, ItoA.write
-ItoA.continue:
-  move $a0, $s0  
-  jal ItoA.recurse
- nop
-ItoA.write:
-  add  $t1, $a1, $v0
-  addi $v0, $v0, 1    
-  addi $t2, $s1, 0x30 # convert to ASCII
-  sb   $t2, 0($t1)    # store in the buffer
-  sb   $zero, 1($t1)
+Phan7:
+
+	li $v0,15		# write_file syscall code = 15
+    	move $a0,$s1		# file descriptor
+    	la $a1,p7		# the string that will be writter
+    	la $a2,3		# length of the toWrite string
+    	syscall
   
-ItoA.exit:
-  lw   $a1, 8($fp)
-  lw   $a0, 4($fp)
-  lw   $ra, -4($fp)
-  lw   $s0, -8($fp)
-  lw   $s1, -12($fp)
-  lw   $fp, 8($sp)    
-  addi $sp, $sp, 24
-  jr $ra
- nop
+    	li $v0,15		# write_file syscall code = 15
+    	move $a0,$s1		# file descriptor
+    	la $a1,kctn 		# the string that will be writter
+    	la $a2,	20	# length of the toWrite string
+    	syscall
+    	
+    	li $v0,15		# write_file syscall code = 15
+    	move $a0,$s1		# file descriptor
+    	la $a1,time3 		# the string that will be writter
+    	la $a2,	10	# length of the toWrite string
+    	syscall
+    	
+    	li $v0,15		# write_file syscall code = 15
+    	move $a0,$s1		# file descriptor
+    	la $a1,strdenn 		# the string that will be writter
+    	la $a2,	10	# length of the toWrite string
+    	syscall
+    	
+    	li $v0,15		# write_file syscall code = 15
+    	move $a0,$s1		# file descriptor
+    	la $a1,time4		# the string that will be writter
+    	la $a2,	10	# length of the toWrite string
+    	syscall
+    	
+    	
+    	li $v0,15		# write_file syscall code = 15
+    	move $a0,$s1		# file descriptor
+    	la $a1,La 		# the string that will be writter
+    	la $a2,	4	# length of the toWrite string
+    	syscall
+
+	la $a0,time3
+	la $a1,time4
+	jal DateDiff
+
+	move $a0,$v0
+	la $a1,saveitoa
+    	jal  itoa
+	
+	la $a0,saveitoa
+	jal strlen
+	move $t4,$v0
+    	
+    	li $v0,15		# write_file syscall code = 15
+    	move $a0,$s1		# file descriptor
+    	la $a1,saveitoa		# the string that will be writter
+    	la $a2,($t4)		# length of the toWrite string
+    	syscall
+  
+   	li $v0,15		# write_file syscall code = 15
+    	move $a0,$s1		# file descriptor
+    	la $a1,xuongdong		# the string that will be writter
+    	la $a2,1		# length of the toWrite string
+    	syscall
+	
+		
+Phan8:	
+	li $v0,15		# write_file syscall code = 15
+    	move $a0,$s1		# file descriptor
+    	la $a1,p8		# the string that will be writter
+    	la $a2,3		# length of the toWrite string
+    	syscall
+    	
+    	li $v0,15		# write_file syscall code = 15
+    	move $a0,$s1		# file descriptor
+    	la $a1,strhnn 		# the string that will be writter
+    	la $a2,	22	# length of the toWrite string
+    	syscall
+    	
+    	    	la $a0,time3
+    	jal Year
+	move $a0,$v0
+	la $a1,saveitoa
+    	jal  itoa
+	
+	la $a0,saveitoa
+	jal strlen
+	move $t4,$v0
+    	
+    	li $v0,15		# write_file syscall code = 15
+    	move $a0,$s1		# file descriptor
+    	la $a1,saveitoa		# the string that will be writter
+    	la $a2,($t4)		# length of the toWrite string
+    	syscall
+    	
+    	li $v0,15		# write_file syscall code = 15
+    	move $a0,$s1		# file descriptor
+    	la $a1,nhatla		# the string that will be writter
+    	la $a2,9		# length of the toWrite string
+    	syscall
+    	
+	#Goi ham NamNhuanGan
+	la $a0,time3
+	jal NamNhuanGan
+
+	#Lay ket qua
+	move $t0,$v0
+	move $t7,$v1
+	
+	move $a0,$t0
+	la $a1,saveitoa
+    	jal  itoa
+	
+	la $a0,saveitoa
+	jal strlen
+	move $t4,$v0
+    	
+    	li $v0,15		# write_file syscall code = 15
+    	move $a0,$s1		# file descriptor
+    	la $a1,saveitoa		# the string that will be writter
+    	la $a2,($t4)		# length of the toWrite string
+    	syscall
+	  	
+	li $v0,15		# write_file syscall code = 15
+    	move $a0,$s1		# file descriptor
+    	la $a1,va		# the string that will be writter
+    	la $a2,4		# length of the toWrite string
+    	syscall
+    	
+    	move $a0,$t7
+	la $a1,saveitoa
+    	jal  itoa
+	
+	la $a0,saveitoa
+	jal strlen
+	move $t4,$v0
+    	
+    	li $v0,15		# write_file syscall code = 15
+    	move $a0,$s1		# file descriptor
+    	la $a1,saveitoa		# the string that will be writter
+    	la $a2,($t4)		# length of the toWrite string
+    	syscall
+	j KetThuc
+#---------------------------------Cac ham dung trong main -------------------------------
+itoa:					# integer to ASCII conversion
+	move	$t5, $a1		# leave $a1 alone, use $t5 as our write pointer
+	move	$t2, $zero		# clear digit count
+
+next_digit:
+	li	$t0, 10			# divide by 10
+	div 	$a0, $t0
+	mfhi	$t1			# remainder becomes digit
+	addi	$t1, $t1, '0'		# add to ASCII '0'
+	sb	$t1, 0($t5)		# store digit
+	addi	$t2, $t2, 1		# increment digit count
+	addi	$t5, $t5, 1		# move string pointer along
+	mflo	$a0			# load division result into $0
+	bnez	$a0, next_digit		#   and check for zero.
+
+	sb	$zero, 0($t5)		# we're done converting number, so append null terminator
+	
+reverse_string:				# after converting number to string, it's digits will be backwards...
+	srl	$t0, $t2, 1		# divide number of digits (i.e. string length) by two to get number of required swaps
+	move	$t1, $a1		# start of string in $t1
+	addi	$t2, $t5, -1		# end of string in $t2 (subtract 1 to ignore null-terminator)
+	
+reverse_loop:
+	beqz	$t0, itoa_done		# no more digits to swap, then done
+	lb	$t3, 0($t1)		# swap characters at $t1 and $t2
+	lb	$t4, 0($t2)
+	sb	$t4, 0($t1)
+	sb	$t3, 0($t2)
+	addi	$t0, $t0, -1		# decrement swap counter
+	addi	$t1, $t1,  1		# move pointers
+	addi	$t2, $t2, -1
+	j	reverse_loop		# repeat for next pair
+
+itoa_done:
+	jr	$ra
+
+
 
 strlen:
     move $t0, $zero  #initialize count to start with 0 for first character
@@ -1948,13 +2334,15 @@ DOCFILE:
 	lw $a0, 20($sp) 	# $a0 save str_temp
 	jal atoi_whole
 	sw $v0, 8($sp) 		# luu nam dang int vao stack
+	
+
 	# Nhap vap TIME theo chuan DD/MM/YYYY
 	lw $a0, 16($sp)		# ngay dang int
 	lw $a1, 12($sp)		# thang dang int
 	lw $a2, 8($sp) 		# nam dang int
 	lw $a3, 24($sp) 	# dia chi luu TIME
 	jal Date
-
+	
 	# Kiem tra TIME hop le syntax
 	addi $t0, $zero, 3	# tong hop le ngay thang nam
 	bne $s0, $t0, nhap_time_non_valid
@@ -1965,8 +2353,14 @@ DOCFILE:
 	beq $v0, $zero, nhap_time_non_valid
 	addi $v1, $zero, 1	# $v1 = 1, hop le
 	
-	j nhap_time_exit
+	addi $v0,$zero,14        		# read_file syscall code = 14
+	move $a0,$s1		# file descriptor
+	lw $a1, 20($sp)	  	# The buffer that holds the string of the WHOLE file
+	addi $a2, $zero, 2	# max size of str_temP
+	syscall
 	
+	j nhap_time_exit
+
 nhap_time_non_valid:
 	add $v1, $zero, $zero	# $v1 = 0, khong hop le	
 
