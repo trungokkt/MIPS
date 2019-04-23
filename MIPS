@@ -72,9 +72,6 @@ msg_yc_khonghople:
 	thu: .asciiz " thu nam"
 	fri: .asciiz " thu sau"
 	sat: .asciiz " thu bay"
-	day: .word 0
-	month: .word 0
-	year: .word 0
 	time: .space 16
 	time2: .space 16
 	time3: .space 16
@@ -414,9 +411,8 @@ NhapXuatInOut:
 	la $t0, time3
 	la $t1, Temp3
 	jal DOCFILE
-	
 	move $t8,$v1	
-	
+	add $v1,$zero,$zero
 	la $t0, time4
 	la $t1, Temp4
 	jal DOCFILE
@@ -436,24 +432,27 @@ NhapXuatInOut:
 
 	beq $t8,0,ktsaitime2khitime1sai
 	j ktsaitime2khitime1dung
+	
 ktsaitime2khitime1sai:
-	beq $t9,1,saica2
+	beq $t9,0,saica2
+	li $v0,15		# write_file syscall code = 15
+    	move $a0,$s1		# file descriptor
+    	la $a1,saitime1		# the string that will be writter
+    	la $a2,25		# length of the toWrite string
+    	syscall
+    	j KetThuc
+saica2:
 	li $v0,15		# write_file syscall code = 15
     	move $a0,$s1		# file descriptor
     	la $a1,sai2time		# the string that will be writter
     	la $a2,35		# length of the toWrite string
     	syscall
+    	
     	j KetThuc
+
 ktsaitime2khitime1dung:
 	beq $t9,0,tame2sai
 	j Phan1
-saica2:
-	li $v0,15		# write_file syscall code = 15
-    	move $a0,$s1		# file descriptor
-    	la $a1,sai2time		# the string that will be writter
-    	la $a2,25		# length of the toWrite string
-    	syscall
-    	j KetThuc
 tame2sai:
 	li $v0,15		# write_file syscall code = 15
     	move $a0,$s1		# file descriptor
@@ -977,17 +976,20 @@ strlen.test:
 #---------------------Ham nhap time--------------------------
 NhapTime:
 #Dau thu tuc
-	addi $sp,$sp,-20 #Khai bao stack
+	addi $sp,$sp,-28 #Khai bao stack
 	#Back up
 	sw $ra,($sp)
 	sw $s0,4($sp)
 	sw $t0,8($sp)
 	sw $t1,12($sp)
 	sw $s1,16($sp)
+	sw $s2,20($sp)
+	sw $s3,24($sp)
 
 	#Lay dia chi luu tru chuoi time
-	move $s1,$a0
+	move $s0,$a0
 
+	#$s2 luu ngay, $s3 luu thang, $s4 luu nam
 #Nhap ngay
 NhapNgay:
 	#Thong bao nhap ngay
@@ -998,28 +1000,27 @@ NhapNgay:
 	#Nhap ngay
 	li $v0,5
 	syscall
-	sw $v0,day
+	move $s1,$v0
 
 	#Kiem tra Day
 	#>=0
-	lw $s0,day
-	slti $t0,$s0,0
+	slt $t0,$s1,$0
 	bne $t0,$0,DaySai
 	#<=31
-	slti $t0,$s0,32
+	slti $t0,$s1,32
 	beq $t0,$0,DaySai
 	
 	#luu vao time
 	li $t0,10
-	div $s0,$t0
+	div $s1,$t0
 	mflo $t0
 	mfhi $t1
 	addu $t0,$t0,48
 	addu $t1,$t1,48
-	sb $t0,($s1)
-	sb $t1,1($s1)
+	sb $t0,($s0)
+	sb $t1,1($s0)
 	li $t0,47
-	sb $t0,2($s1)
+	sb $t0,2($s0)
 
 	j NhapThang
 
@@ -1040,28 +1041,27 @@ NhapThang:
 	#Nhap thang
 	li $v0,5
 	syscall
-	sw $v0,month
+	move $s2,$v0
 
 	#Kiem tra Month
 	#>=0
-	lw $s0,month
-	slti $t0,$s0,0
+	slti $t0,$s2,0
 	bne $t0,$0,MonthSai
 	#<=12
-	slti $t0,$s0,13
+	slti $t0,$s2,13
 	beq $t0,$0,MonthSai
 	
 	#luu vao time
 	li $t0,10
-	div $s0,$t0
+	div $s2,$t0
 	mflo $t0
 	mfhi $t1
 	addu $t0,$t0,48
 	addu $t1,$t1,48
-	sb $t0,3($s1)
-	sb $t1,4($s1)
+	sb $t0,3($s0)
+	sb $t1,4($s0)
 	li $t0,47
-	sb $t0,5($s1)
+	sb $t0,5($s0)
 
 	j NhapNam
 MonthSai:
@@ -1081,35 +1081,34 @@ NhapNam:
 	#Nhap nam
 	li $v0,5
 	syscall
-	sw $v0,year
+	move $s3,$v0
 
 	#Kiem tra Year
 	#>=0
-	lw $s0,year
-	slti $t0,$s0,0
+	slti $t0,$s3,0
 	bne $t0,$0,YearSai
 	
 	#luu vao time
 	li $t0,1000
-	div $s0,$t0
+	div $s3,$t0
 	mflo $t0
 	mfhi $t1
 	addu $t0,$t0,48
-	sb $t0,6($s1)
+	sb $t0,6($s0)
 	li $t0,100
 	div $t1,$t0
 	mflo $t0
 	mfhi $t1
 	addu $t0,$t0,48
-	sb $t0,7($s1)
+	sb $t0,7($s0)
 	li $t0,10
 	div $t1,$t0
 	mflo $t0
 	mfhi $t1
 	addu $t0,$t0,48
 	addu $t1,$t1,48
-	sb $t0,8($s1)
-	sb $t1,9($s1)
+	sb $t0,8($s0)
+	sb $t1,9($s0)
 
 	j CheckAll
 YearSai:
@@ -1120,17 +1119,15 @@ YearSai:
 	j NhapNam
 CheckAll:
 	#Thang 30 ngay
-	lw $t1,month
-	beq $t1,4,XuLy30
-	beq $t1,6,XuLy30
-	beq $t1,9,XuLy30
-	beq $t1,11,XuLy30
-	beq $t1,2,KiemTraThang2
+	beq $s2,4,XuLy30
+	beq $s2,6,XuLy30
+	beq $s2,9,XuLy30
+	beq $s2,11,XuLy30
+	beq $s2,2,KiemTraThang2
 
 	j EndNhap
 XuLy30:
-	lw $t1,day
-	slti $t0,$t1,31
+	slti $t0,$s1,31
 	bne $t0,$0,EndNhap
 	
 	#Xuat thong bao loi
@@ -1142,14 +1139,13 @@ XuLy30:
 
 KiemTraThang2:
 	#Kiem tra nhuan
-	la $a0,time
+	move $a0,$s0
 	jal LeapYear	
 	move $t0,$v0
 
 	bne $t0,$0,KiemTraThang2_Nhuan
 	#Khong nhuan
-	lw $t1,day
-	slti $t0,$t1,29
+	slti $t0,$s1,29
 	bne $t0,$0,EndNhap
 
 	#Xuat thong bao loi
@@ -1160,8 +1156,7 @@ KiemTraThang2:
 	j NhapNgay
 
 KiemTraThang2_Nhuan:
-	lw $t1,day
-	slti $t0,$t1,30
+	slti $t0,$s1,30
 	bne $t0,$0,EndNhap
 
 	#Xuat thong bao loi
@@ -1177,12 +1172,14 @@ EndNhap:
 	lw $t0,8($sp)
 	lw $t1,12($sp)
 	lw $s1,16($sp)
+	lw $s2,20($sp)
+	lw $s3,24($sp)
 
 	 #Tra lai stack
-	addi $sp,$sp,20
+	addi $sp,$sp,28
 
 	#Ket qua tra ve
-	move $a0,$s1
+	move $v0,$s0
 	
 	jr $ra
 #-----------------Cuoi thu tuc---------------
